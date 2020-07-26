@@ -13,13 +13,12 @@ class UserMsSimulation extends Simulation {
     .acceptLanguageHeader("it-IT,it;q=0.8,en-US;q=0.5,en;q=0.3")
     .userAgentHeader("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:46.0) Gecko/20100101 Firefox/46.0")
 
-  val scn = scenario("Users Scenario")
-    .exec(http("Get Users")
-      .get("/user"))
+  val feeder = csv("data/users.csv").random
 
   val testScenario = scenario("Test Scenario")
+    .feed(feeder)
     .exec(http("Get Users")
-      .get("/user/1")
+      .get("/user/${userID}")
       .check(jsonPath("$.email").saveAs("email")))
     .exec { session =>
       // displays the content of the session in the console (debugging only)
@@ -29,6 +28,6 @@ class UserMsSimulation extends Simulation {
     }
 
   setUp(testScenario.inject(
-    atOnceUsers(1))
-      .protocols(httpProtocol))
+    rampUsers(10) during (10.seconds))
+    .protocols(httpProtocol))
 }
